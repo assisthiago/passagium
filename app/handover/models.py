@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -145,6 +148,25 @@ class Handover(AuditedModel):
     def __str__(self) -> str:
         return f"{self.company} — {self.subject} ({self.starts_at:%Y-%m-%d})"
 
+    def clean(self):
+        """Validate scope/site coherence and company-safe FK relations."""
+        errors: dict[str, list[str]] = {}
+
+        if self.scope == self.Scope.SITE and self.site_id is None:
+            errors.setdefault("site", []).append("Obrigatório quando o escopo é Site/Unidade.")
+
+        if self.scope == self.Scope.GLOBAL and self.site_id is not None:
+            errors.setdefault("site", []).append("Deve ficar vazio quando o escopo é Global.")
+
+        if self.site_id and self.company_id and self.site.company_id != self.company_id:
+            errors.setdefault("site", []).append("A unidade pertence a outra empresa.")
+
+        if self.shift_id and self.company_id and self.shift.company_id != self.company_id:
+            errors.setdefault("shift", []).append("O turno pertence a outra empresa.")
+
+        if errors:
+            raise ValidationError(errors)
+
 
 class HandoverItem(AuditedModel):
     """A structured item belonging to a handover (incident, pending task, notice, etc.)."""
@@ -217,6 +239,17 @@ class HandoverItem(AuditedModel):
     def __str__(self) -> str:
         return self.title
 
+    def clean(self):
+        """Validate company-safe relations for category."""
+        errors: dict[str, list[str]] = {}
+
+        if self.category_id and self.handover_id:
+            if self.category.company_id != self.handover.company_id:
+                errors.setdefault("category", []).append("A categoria pertence a outra empresa.")
+
+        if errors:
+            raise ValidationError(errors)
+
 
 class HandoverAttachment(AuditedModel):
     """File evidence attached to a handover and optionally to a specific item."""
@@ -248,6 +281,17 @@ class HandoverAttachment(AuditedModel):
 
     def __str__(self) -> str:
         return self.name or self.file.name
+
+    def clean(self):
+        """Validate attachment consistency with item/handover."""
+        errors: dict[str, list[str]] = {}
+
+        if self.item_id and self.handover_id:
+            if self.item.handover_id != self.handover_id:
+                errors.setdefault("item", []).append("O item selecionado não pertence à mesma passagem.")
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class HandoverRecipient(AuditedModel):
