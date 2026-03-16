@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Local apps
+    # Local apps (alphabetical order)
+    "app.accounts",
+    "app.core",
+    "app.handover",
 ]
 
 
