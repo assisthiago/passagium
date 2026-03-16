@@ -10,12 +10,18 @@ class ItemCategory(AuditedModel):
     """Company-scoped category used to classify handover items."""
 
     company = models.ForeignKey(
-        Company, verbose_name="empresa", on_delete=models.CASCADE, related_name="item_categories", db_index=True
+        Company,
+        verbose_name="empresa",
+        on_delete=models.CASCADE,
+        related_name="item_categories",
+        db_index=True,
     )
     name = models.CharField(verbose_name="nome", max_length=120)
     is_active = models.BooleanField(verbose_name="ativo", default=True, db_index=True)
 
     class Meta:
+        verbose_name = "categoria de item"
+        verbose_name_plural = "categorias de itens"
         unique_together = (("company", "name"),)
         ordering = ["company__name", "name"]
 
@@ -27,12 +33,18 @@ class Tag(AuditedModel):
     """Company-scoped tag used for search and quick filtering."""
 
     company = models.ForeignKey(
-        Company, verbose_name="empresa", on_delete=models.CASCADE, related_name="tags", db_index=True
+        Company,
+        verbose_name="empresa",
+        on_delete=models.CASCADE,
+        related_name="tags",
+        db_index=True,
     )
     name = models.CharField(verbose_name="nome", max_length=80)
     is_active = models.BooleanField(verbose_name="ativo", default=True, db_index=True)
 
     class Meta:
+        verbose_name = "tag"
+        verbose_name_plural = "tags"
         unique_together = (("company", "name"),)
         ordering = ["company__name", "name"]
 
@@ -45,20 +57,28 @@ class Handover(AuditedModel):
 
     class Scope(models.TextChoices):
         GLOBAL = "GLOBAL", "Global"
-        SITE = "SITE", "Site/Unit"
+        SITE = "SITE", "Site/Unidade"
 
     class Status(models.TextChoices):
-        DRAFT = "DRAFT", "Draft"
-        DELIVERED = "DELIVERED", "Delivered"
-        ACKED = "ACKED", "Acknowledged"
-        CLOSED = "CLOSED", "Closed"
+        DRAFT = "DRAFT", "Rascunho"
+        DELIVERED = "DELIVERED", "Entregue"
+        ACKED = "ACKED", "Recebido/Confirmado"
+        CLOSED = "CLOSED", "Fechado"
 
     company = models.ForeignKey(
-        Company, verbose_name="empresa", on_delete=models.CASCADE, related_name="handovers", db_index=True
+        Company,
+        verbose_name="empresa",
+        on_delete=models.CASCADE,
+        related_name="handovers",
+        db_index=True,
     )
 
     scope = models.CharField(
-        verbose_name="escopo", max_length=16, choices=Scope.choices, default=Scope.SITE, db_index=True
+        verbose_name="escopo",
+        max_length=16,
+        choices=Scope.choices,
+        default=Scope.SITE,
+        db_index=True,
     )
     site = models.ForeignKey(
         Site,
@@ -80,11 +100,11 @@ class Handover(AuditedModel):
         db_index=True,
     )
 
-    starts_at = models.DateTimeField(verbose_name="iniciado em", default=timezone.now, db_index=True)
-    ends_at = models.DateTimeField(verbose_name="finalizado em", null=True, blank=True, db_index=True)
+    starts_at = models.DateTimeField(verbose_name="início", default=timezone.now, db_index=True)
+    ends_at = models.DateTimeField(verbose_name="fim", null=True, blank=True, db_index=True)
 
     subject = models.CharField(verbose_name="assunto", max_length=255)
-    notes = models.TextField(verbose_name="notas", blank=True)
+    notes = models.TextField(verbose_name="observações", blank=True)
 
     delivered_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -97,7 +117,11 @@ class Handover(AuditedModel):
     )
 
     status = models.CharField(
-        verbose_name="status", max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True
+        verbose_name="status",
+        max_length=16,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
     )
 
     recipients_users = models.ManyToManyField(
@@ -114,6 +138,8 @@ class Handover(AuditedModel):
     )
 
     class Meta:
+        verbose_name = "passagem de plantão"
+        verbose_name_plural = "passagens de plantão"
         ordering = ["-starts_at", "-created_at"]
 
     def __str__(self) -> str:
@@ -124,17 +150,21 @@ class HandoverItem(AuditedModel):
     """A structured item belonging to a handover (incident, pending task, notice, etc.)."""
 
     class Priority(models.TextChoices):
-        LOW = "LOW", "Low"
-        MED = "MED", "Medium"
-        HIGH = "HIGH", "High"
+        LOW = "LOW", "Baixa"
+        MED = "MED", "Média"
+        HIGH = "HIGH", "Alta"
 
     class Status(models.TextChoices):
-        OPEN = "OPEN", "Open/Pending"
-        DONE = "DONE", "Done"
-        INFO = "INFO", "Info-only"
+        OPEN = "OPEN", "Aberto/Pendente"
+        DONE = "DONE", "Resolvido"
+        INFO = "INFO", "Informativo"
 
     handover = models.ForeignKey(
-        Handover, verbose_name="entrega", on_delete=models.CASCADE, related_name="items", db_index=True
+        Handover,
+        verbose_name="passagem de plantão",
+        on_delete=models.CASCADE,
+        related_name="items",
+        db_index=True,
     )
 
     category = models.ForeignKey(
@@ -151,10 +181,18 @@ class HandoverItem(AuditedModel):
     description = models.TextField(verbose_name="descrição", blank=True)
 
     priority = models.CharField(
-        verbose_name="prioridade", max_length=8, choices=Priority.choices, default=Priority.MED, db_index=True
+        verbose_name="prioridade",
+        max_length=8,
+        choices=Priority.choices,
+        default=Priority.MED,
+        db_index=True,
     )
     status = models.CharField(
-        verbose_name="status", max_length=8, choices=Status.choices, default=Status.OPEN, db_index=True
+        verbose_name="status",
+        max_length=8,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
     )
 
     assignee = models.ForeignKey(
@@ -169,9 +207,11 @@ class HandoverItem(AuditedModel):
 
     due_at = models.DateTimeField(verbose_name="prazo", null=True, blank=True, db_index=True)
 
-    tags = models.ManyToManyField(Tag, verbose_name="etiquetas", blank=True, related_name="items")
+    tags = models.ManyToManyField(Tag, verbose_name="tags", blank=True, related_name="items")
 
     class Meta:
+        verbose_name = "item da passagem"
+        verbose_name_plural = "itens da passagem"
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
@@ -182,7 +222,11 @@ class HandoverAttachment(AuditedModel):
     """File evidence attached to a handover and optionally to a specific item."""
 
     handover = models.ForeignKey(
-        Handover, verbose_name="entrega", on_delete=models.CASCADE, related_name="attachments", db_index=True
+        Handover,
+        verbose_name="passagem de plantão",
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        db_index=True,
     )
     item = models.ForeignKey(
         HandoverItem,
@@ -198,6 +242,8 @@ class HandoverAttachment(AuditedModel):
     name = models.CharField(verbose_name="nome", max_length=255, blank=True)
 
     class Meta:
+        verbose_name = "anexo"
+        verbose_name_plural = "anexos"
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
@@ -208,11 +254,15 @@ class HandoverRecipient(AuditedModel):
     """Per-user receipt/acknowledgement record, prepared for future signature support."""
 
     class ConfirmationType(models.TextChoices):
-        CONFIRM = "CONFIRM", "Confirm"
-        SIGNATURE = "SIGNATURE", "Signature"
+        CONFIRM = "CONFIRM", "Confirmação"
+        SIGNATURE = "SIGNATURE", "Assinatura"
 
     handover = models.ForeignKey(
-        Handover, verbose_name="entrega", on_delete=models.CASCADE, related_name="recipient_receipts", db_index=True
+        Handover,
+        verbose_name="passagem de plantão",
+        on_delete=models.CASCADE,
+        related_name="recipient_receipts",
+        db_index=True,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -234,9 +284,11 @@ class HandoverRecipient(AuditedModel):
 
     comment = models.TextField(verbose_name="comentário", blank=True)
 
-    signature_ref = models.CharField(verbose_name="referência da assinatura", max_length=255, blank=True)
+    signature_ref = models.CharField(verbose_name="referência de assinatura", max_length=255, blank=True)
 
     class Meta:
+        verbose_name = "recibo do destinatário"
+        verbose_name_plural = "recibos dos destinatários"
         unique_together = (("handover", "user"),)
         ordering = ["-created_at"]
 
