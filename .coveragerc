@@ -1,0 +1,78 @@
+[run]
+branch = True
+parallel = True
+source =
+    app
+omit =
+    */migrations/*
+    */migrations/*.py
+    */migrations/**
+    */config/*
+    */deploy/*
+    */tests/*
+    */test_*.py
+    */conftest.py
+    */manage.py
+    */asgi.py
+    */wsgi.py
+    */settings/*
+    */__init__.py
+    */admin.py
+    */apps.py
+    */urls.py
+    */celery.py
+    */gunicorn.conf.py
+    */vendor/*
+    */static/*
+    */staticfiles/*
+    */media/*
+    */templates/*
+    */locale/*
+    */node_modules/*
+    */.venv/*
+    */venv/*
+    */site-packages/*
+    */dist/*
+    */build/*
+    */.tox/*
+    */.pytest_cache/*
+    */.mypy_cache/*
+    */.ruff_cache/*
+    */.coverage*
+    */coverage/*
+    */htmlcov/*
+
+[report]
+show_missing = True
+skip_covered = True
+precision = 1
+fail_under = 80
+omit =
+    */migrations/*
+    */migrations/*.py
+    */migrations/**
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    raise NotImplementedError
+    pass
+    @abstractmethod
+    def __repr__
+    def __str__
+    except ImportError:
+    if settings\.DEBUG
+    if DEBUG
+    if 0:
+    \.\.\.
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
+
+[paths]
+source =
+    .
+    */site-packages
